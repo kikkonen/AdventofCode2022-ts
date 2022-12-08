@@ -1,0 +1,14 @@
+{
+  "name": "advent-of-code-2022-ts",
+  "version": "0.0.1",
+  "type": "module",
+  "module": "ESNEXT",
+  "dependencies": {
+    "fs": "latest",
+    "typescript": "latest"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.11.11"
+  }
+}

@@ -54,15 +54,6 @@ class groupHandler {
         return top_elves
     }
 
-    getTotalCaloriesOfTopElves(n_top: number): number {
-        let top_elves: Elf[] = this.getTopNCaloryElves(n_top)
-        let total: number = 0
-        for (let elf of top_elves) {
-            total += elf.getTotalCalories()
-        }
-        return total
-    }
-
     sortFunction(a: Elf, b: Elf): number {
         return b.getTotalCalories() - a.getTotalCalories()
     }
@@ -71,5 +62,6 @@ class groupHandler {
 
 let elves = getElvesFromInput(readLines(1))
 let handler = new groupHandler(elves)
-console.log(handler.getTopNCaloryElves(3))
-console.log(`Total calories: ${handler.getTotalCaloriesOfTopElves(3)}`)
+let topElves = handler.getTopNCaloryElves(3)
+let totalCalories: number = topElves.map(elf => elf.getTotalCalories()).reduce((a, b) => a + b, 0)
+console.log(`Total calories across the top elves: ${totalCalories}`)

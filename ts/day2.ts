@@ -23,7 +23,7 @@ let inputResultMapping = {
 }
 
 
-function transposeMatrix(matrix: Result[][]): Result[][] {
+export function transposeMatrix(matrix: Result[][]): Result[][] {
     let n_cols = matrix[0].length
     let transposedMatrix: Result[][] = Array.from(Array(n_cols), _ => [])
     for (let row of matrix) {

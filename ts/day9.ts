@@ -40,29 +40,14 @@ const inputMapping: { [direction: string]: Distance } = {
     'R': new Distance(1, 0)
 }
 
-class Snake {
-    headPosition: Position = new Position(0, 0)
-    tailPosition: Position = new Position(0, 0)
+class KnotPair {
+    headPosition: Position
+    tailPosition: Position
     visitedTailPositions: Position[] = []
 
-    runInput(inputLines: string[]) {
-        for (let line of inputLines) {
-            let split = line.split(' ')
-            if (split.length != 2) {
-                throw `Got a line dont know how to parse: ${line}`
-            }
-            let direction: string = split[0]
-            let nSteps: number = parseInt(split[1])
-            for (let i = 0; i < nSteps; i++) {
-                this.move(direction)
-            }
-        }
-    }
-
-    move(direction: string) {
-        this.moveHead(direction)
-        this.updateTailPosition()
-        this.updateVisitedTailPositions()
+    constructor(headPosition: Position, tailPosition: Position) {
+        this.headPosition = headPosition
+        this.tailPosition = tailPosition
     }
 
     updateVisitedTailPositions() {
@@ -76,37 +61,86 @@ class Snake {
         if (!alreadyVisited) { this.visitedTailPositions.push(structuredClone(this.tailPosition)) }
     }
 
-    moveHead(direction: string) {
-        this.headPosition.move(inputMapping[direction])
-    }
-
     updateTailPosition() {
         let headTailDistance = this.headPosition.getDistanceFrom(this.tailPosition)
         let baseXMovement: number
         let baseYMovement: number
-        switch (headTailDistance.getModulo()) {
-            case 5: {//move diagonally
-                baseXMovement = 1
-                baseYMovement = 1
-                break
-            }
-            case 4: {// move horizontally/vertically
-                baseXMovement = headTailDistance.deltaX == 0 ? 0 : 1
-                baseYMovement = headTailDistance.deltaY == 0 ? 0 : 1
-                break
-            }
-            default: return
+
+        let distanceModulo: number = headTailDistance.getModulo()
+        if (distanceModulo >= 5) {
+            //move diagonally
+            baseXMovement = 1
+            baseYMovement = 1
+        } else if (distanceModulo == 4) {
+            // move horizontally/vertically
+            baseXMovement = headTailDistance.deltaX == 0 ? 0 : 1
+            baseYMovement = headTailDistance.deltaY == 0 ? 0 : 1
+        } else {
+            baseXMovement = 0
+            baseYMovement = 0
         }
         let xMove: number = baseXMovement * Math.sign(headTailDistance.deltaX)
         let yMove: number = baseYMovement * Math.sign(headTailDistance.deltaY)
         this.tailPosition.move(new Distance(xMove, yMove))
+        this.updateVisitedTailPositions()
     }
 }
 
-let snake = new Snake()
-let lines: string[] = readLines(9)
-snake.runInput(lines)
-console.log(`Tail visited ${snake.visitedTailPositions.length} unique positions`)
 
-let x = 5
-let y = 6
+class KnotsChain {
+    knotPairs: KnotPair[]
+
+    constructor(chainKnotLength: number) {
+        let numberPairs: number = chainKnotLength - 1
+        if (numberPairs < 1) {
+            throw `Cannot create a knot chain of less than 2 knows. Got: ${chainKnotLength}`
+        }
+        this.knotPairs = []
+        this.initializeChainPairs(numberPairs)
+    }
+
+    initializeChainPairs(numberPairs: number) {
+        let masterHeadPosition = new Position(0, 0)
+        let linkAheadPosition = new Position(0, 0)
+        let firstPair = new KnotPair(masterHeadPosition, linkAheadPosition)
+        this.knotPairs.push(firstPair)
+
+        for (let i = 1; i < numberPairs; i++) {
+            let linkBehindPosition = new Position(0, 0)
+            let nextPair = new KnotPair(linkAheadPosition, linkBehindPosition)
+            this.knotPairs.push(nextPair)
+            linkAheadPosition = linkBehindPosition
+
+        }
+    }
+
+    moveHeadAndUpdateTails(direction: string) {
+        this.knotPairs[0].headPosition.move(inputMapping[direction])
+        for (let pair of this.knotPairs) {
+            pair.updateTailPosition()
+        }
+    }
+
+    runInput(inputLines: string[]) {
+        for (let line of inputLines) {
+            let split = line.split(' ');
+            if (split.length != 2) {
+                throw `Got a line dont know how to parse: ${line}`;
+            }
+            let direction = split[0];
+            let nSteps = parseInt(split[1]);
+            for (let i = 0; i < nSteps; i++) {
+                this.moveHeadAndUpdateTails(direction);
+            }
+        }
+    }
+
+}
+
+let chainShort = new KnotsChain(2)
+let chainLong = new KnotsChain(10)
+let lines: string[] = readLines(9)
+chainShort.runInput(lines)
+chainLong.runInput(lines)
+console.log(`Tail of short chain visited ${chainShort.knotPairs[chainShort.knotPairs.length - 1].visitedTailPositions.length} unique positions`)
+console.log(`Tail of long chain visited ${chainLong.knotPairs[chainLong.knotPairs.length - 1].visitedTailPositions.length} unique positions`)
